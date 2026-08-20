@@ -1,0 +1,29 @@
+[gd_resource type="Theme" format=3 uid="uid://dhso7j44fjj38"]
+
+[ext_resource type="FontFile" uid="uid://c3inl12qloxh6" path="res://fonts/Chewy-Regular.ttf" id="1_xj0qj"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_64ctp"]
+bg_color = Color(1, 0.5642413, 0.98521847, 1)
+border_width_bottom = 15
+border_color = Color(0.99999946, 0.31286606, 0.9919444, 1)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_right = 25
+corner_radius_bottom_left = 25
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8sq4i"]
+bg_color = Color(1, 0.5647059, 0.9843137, 1)
+border_width_top = 10
+border_color = Color(0.8, 0.8, 0.8, 0)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_right = 25
+corner_radius_bottom_left = 25
+
+[resource]
+Button/font_sizes/font_size = 50
+Button/fonts/font = ExtResource("1_xj0qj")
+Button/styles/focus = null
+Button/styles/hover = SubResource("StyleBoxFlat_64ctp")
+Button/styles/normal = SubResource("StyleBoxFlat_64ctp")
+Button/styles/pressed = SubResource("StyleBoxFlat_8sq4i")
