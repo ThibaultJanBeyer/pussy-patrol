@@ -14,7 +14,7 @@ const OFFLINE_URL = 'game.offline.html';
 const ENSURE_CROSSORIGIN_ISOLATION_HEADERS = true;
 // Files that will be cached on load.
 /** @type {string[]} */
-const CACHED_FILES = ["game.html","game.js","game.offline.html","game.icon.png","game.apple-touch-icon.png","game.audio.worklet.js","game.audio.position.worklet.js"];
+const CACHED_FILES = ["index.html","game.js","game.offline.html","game.icon.png","game.apple-touch-icon.png","game.audio.worklet.js","game.audio.position.worklet.js"];
 // Files that we might not want the user to preload, and will only be cached on first load.
 /** @type {string[]} */
 const CACHEABLE_FILES = ["game.wasm","game.pck"];
