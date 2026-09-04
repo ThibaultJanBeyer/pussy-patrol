@@ -13,6 +13,10 @@
 [ext_resource type="Texture2D" uid="uid://siatu0etk3yg" path="res://art/cat1/cat1_walk2sit_2.png" id="13_w2s2"]
 [ext_resource type="Texture2D" uid="uid://bgcphsl704437" path="res://art/cat1/cat1_walk2sit_3.png" id="14_w2s3"]
 [ext_resource type="Texture2D" uid="uid://b14of85a5hm2n" path="res://art/cat1/cat1_walk2sit_4.png" id="15_w2s4"]
+[ext_resource type="Texture2D" uid="uid://dhxite57k1stq" path="res://art/cat1/cat1_water_1.png" id="16_wat1"]
+[ext_resource type="Texture2D" uid="uid://bfev325vr5f6v" path="res://art/cat1/cat1_water_2.png" id="17_wat2"]
+[ext_resource type="Texture2D" uid="uid://36rnswlae0ox" path="res://art/cat1/cat1_water_3.png" id="18_wat3"]
+[ext_resource type="Texture2D" uid="uid://c6wyoa7oyvp0c" path="res://art/cat1/cat1_water_4.png" id="19_wat4"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_gwrup"]
 animations = [{
@@ -35,7 +39,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("8_sit1")
 }],
-"loop": 1,
+"loop": true,
 "name": &"idle",
 "speed": 5.0
 }, {
@@ -52,7 +56,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("7_n7ghd")
 }],
-"loop": 1,
+"loop": true,
 "name": &"walk",
 "speed": 5.0
 }, {
@@ -69,9 +73,26 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("15_w2s4")
 }],
-"loop": 0,
+"loop": false,
 "name": &"walk_to_sit",
 "speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("16_wat1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_wat2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_wat3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("19_wat4")
+}],
+"loop": false,
+"name": &"water",
+"speed": 8.0
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_gwrup"]
@@ -89,6 +110,7 @@ metadata/_edit_group_ = true
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=276373639]
 scale = Vector2(0.3, 0.3)
 sprite_frames = SubResource("SpriteFrames_gwrup")
+animation = &"idle"
 autoplay = "idle"
 
 [node name="WalkCollision" type="CollisionShape2D" parent="." unique_id=1163291427]
@@ -100,4 +122,3 @@ disabled = true
 shape = SubResource("CapsuleShape2D_urp6f")
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
-[connection signal="hit" from="." to="." method="game_over"]

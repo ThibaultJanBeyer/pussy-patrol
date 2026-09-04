@@ -4,7 +4,7 @@ signal hit
 @export var speed = 400 # How fast the player will move (pixels/sec).
 var screen_size # Size of the game window.
 
-enum State { IDLE, WALK, TO_SIT, TO_WALK }
+enum State { IDLE, WALK, TO_SIT, TO_WALK, HIT }
 var state := State.IDLE
 
 func start(pos):
@@ -59,9 +59,15 @@ func _set_state(new_state: State) -> void:
 		State.TO_WALK:
 			# Same frames as walk→sit, played backwards.
 			sprite.play("walk_to_sit", -1.0, true)
+		State.HIT:
+			sprite.play("water")
 	_apply_collision(state)
 
 func _apply_collision(for_state: State) -> void:
+	if for_state == State.HIT:
+		$SitCollision.disabled = true
+		$WalkCollision.disabled = true
+		return
 	var sitting := for_state == State.IDLE or for_state == State.TO_SIT
 	$SitCollision.disabled = not sitting
 	$WalkCollision.disabled = sitting
@@ -72,9 +78,10 @@ func _on_animation_finished() -> void:
 	elif state == State.TO_WALK:
 		_set_state(State.WALK)
 
-
 func _on_body_entered(_body):
-	hide() # Player disappears after being hit.
+	if state == State.HIT:
+		return
+	_set_state(State.HIT)
 	hit.emit()
 	# Must be deferred as we can't change physics properties on a physics callback.
 	$WalkCollision.set_deferred("disabled", true)
