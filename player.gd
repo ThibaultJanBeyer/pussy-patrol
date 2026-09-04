@@ -4,13 +4,18 @@ signal hit
 @export var speed = 400 # How fast the player will move (pixels/sec).
 var screen_size # Size of the game window.
 
+enum State { IDLE, WALK, TO_SIT, TO_WALK }
+var state := State.IDLE
+
 func start(pos):
 	position = pos
 	show()
 	$CollisionShape2D.disabled = false
+	_set_state(State.IDLE)
 
 func _ready():
 	screen_size = get_viewport_rect().size
+	$AnimatedSprite2D.animation_finished.connect(_on_animation_finished)
 	hide()
 
 func _process(delta):
@@ -24,20 +29,42 @@ func _process(delta):
 	if Input.is_action_pressed("move_up"):
 		velocity.y -= 1
 
-	if velocity.length() > 0:
+	var wants_to_move := velocity.length() > 0
+
+	if wants_to_move:
 		velocity = velocity.normalized() * speed
-		$AnimatedSprite2D.play()
+		if state == State.IDLE or state == State.TO_SIT:
+			_set_state(State.TO_WALK)
+		position += velocity * delta
+		position = position.clamp(Vector2.ZERO, screen_size)
+		if velocity.x != 0:
+			$AnimatedSprite2D.flip_v = false
+			$AnimatedSprite2D.flip_h = velocity.x > 0
 	else:
-		$AnimatedSprite2D.stop()
-		
-	position += velocity * delta
-	position = position.clamp(Vector2.ZERO, screen_size)
-	
-	if velocity.x != 0:
-		$AnimatedSprite2D.animation = "walk"
-		$AnimatedSprite2D.flip_v = false
-		# See the note below about the following boolean assignment.
-		$AnimatedSprite2D.flip_h = velocity.x > 0
+		if state == State.WALK or state == State.TO_WALK:
+			_set_state(State.TO_SIT)
+
+func _set_state(new_state: State) -> void:
+	if state == new_state:
+		return
+	state = new_state
+	var sprite := $AnimatedSprite2D
+	match state:
+		State.IDLE:
+			sprite.play("idle")
+		State.WALK:
+			sprite.play("walk")
+		State.TO_SIT:
+			sprite.play("walk_to_sit")
+		State.TO_WALK:
+			# Same frames as walk→sit, played backwards.
+			sprite.play("walk_to_sit", -1.0, true)
+
+func _on_animation_finished() -> void:
+	if state == State.TO_SIT:
+		_set_state(State.IDLE)
+	elif state == State.TO_WALK:
+		_set_state(State.WALK)
 
 
 func _on_body_entered(_body):

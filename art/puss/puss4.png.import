@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dgtteluo4vj4r"
-path="res://.godot/imported/puss4.png-066dff845fc8fdd0362ddbdf168e6a68.ctex"
+path="res://.godot/imported/puss4.png-bffd38b613692675ea79e1ffa9983fa7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/puss4.png"
-dest_files=["res://.godot/imported/puss4.png-066dff845fc8fdd0362ddbdf168e6a68.ctex"]
+source_file="res://art/puss/puss4.png"
+dest_files=["res://.godot/imported/puss4.png-bffd38b613692675ea79e1ffa9983fa7.ctex"]
 
 [params]
 

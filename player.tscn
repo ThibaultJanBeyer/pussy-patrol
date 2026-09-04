@@ -5,9 +5,40 @@
 [ext_resource type="Texture2D" uid="uid://cwnamwolxcjl7" path="res://art/cat1/cat1_walk_2.png" id="5_dw050"]
 [ext_resource type="Texture2D" uid="uid://dthjefx2yhjbe" path="res://art/cat1/cat1_walk_3.png" id="6_b26j0"]
 [ext_resource type="Texture2D" uid="uid://5g7rk55wggu2" path="res://art/cat1/cat1_walk_4.png" id="7_n7ghd"]
+[ext_resource type="Texture2D" uid="uid://cmj1b0jdovqq2" path="res://art/cat1/cat1_sit_1.png" id="8_sit1"]
+[ext_resource type="Texture2D" uid="uid://bo6qo02q52fye" path="res://art/cat1/cat1_sit_2.png" id="9_sit2"]
+[ext_resource type="Texture2D" uid="uid://2w87v31o0muv" path="res://art/cat1/cat1_sit_3.png" id="10_sit3"]
+[ext_resource type="Texture2D" uid="uid://7n8uxwr4ajlq" path="res://art/cat1/cat1_sit_4.png" id="11_sit4"]
+[ext_resource type="Texture2D" uid="uid://bvmg4qgdhah2y" path="res://art/cat1/cat1_walk2sit_1.png" id="12_w2s1"]
+[ext_resource type="Texture2D" uid="uid://siatu0etk3yg" path="res://art/cat1/cat1_walk2sit_2.png" id="13_w2s2"]
+[ext_resource type="Texture2D" uid="uid://bgcphsl704437" path="res://art/cat1/cat1_walk2sit_3.png" id="14_w2s3"]
+[ext_resource type="Texture2D" uid="uid://b14of85a5hm2n" path="res://art/cat1/cat1_walk2sit_4.png" id="15_w2s4"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_gwrup"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("8_sit1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_sit2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_sit3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_sit4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_sit3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_sit1")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("4_1jxqw")
@@ -24,6 +55,23 @@ animations = [{
 "loop": 1,
 "name": &"walk",
 "speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("12_w2s1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("13_w2s2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("14_w2s3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_w2s4")
+}],
+"loop": 0,
+"name": &"walk_to_sit",
+"speed": 10.0
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_gwrup"]
@@ -37,7 +85,10 @@ metadata/_edit_group_ = true
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=276373639]
 scale = Vector2(0.3, 0.3)
 sprite_frames = SubResource("SpriteFrames_gwrup")
-animation = &"walk"
+animation = &"walk_to_sit"
+autoplay = "idle"
+frame = 3
+frame_progress = 1.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1163291427]
 rotation = 1.5707964
