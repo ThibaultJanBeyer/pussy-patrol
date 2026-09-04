@@ -89,9 +89,7 @@ metadata/_edit_group_ = true
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=276373639]
 scale = Vector2(0.3, 0.3)
 sprite_frames = SubResource("SpriteFrames_gwrup")
-animation = &"walk"
 autoplay = "idle"
-frame_progress = 0.89648235
 
 [node name="WalkCollision" type="CollisionShape2D" parent="." unique_id=1163291427]
 rotation = 1.5707964
