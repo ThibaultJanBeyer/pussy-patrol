@@ -78,6 +78,10 @@ animations = [{
 radius = 44.0
 height = 112.0
 
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_urp6f"]
+radius = 36.0
+height = 92.0
+
 [node name="Cat1" type="Area2D" unique_id=877961281]
 script = ExtResource("1_sweqy")
 metadata/_edit_group_ = true
@@ -85,14 +89,17 @@ metadata/_edit_group_ = true
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=276373639]
 scale = Vector2(0.3, 0.3)
 sprite_frames = SubResource("SpriteFrames_gwrup")
-animation = &"walk_to_sit"
+animation = &"walk"
 autoplay = "idle"
-frame = 3
-frame_progress = 1.0
+frame_progress = 0.89648235
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1163291427]
+[node name="WalkCollision" type="CollisionShape2D" parent="." unique_id=1163291427]
 rotation = 1.5707964
 shape = SubResource("CapsuleShape2D_gwrup")
+disabled = true
+
+[node name="SitCollision" type="CollisionShape2D" parent="." unique_id=505351783]
+shape = SubResource("CapsuleShape2D_urp6f")
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
 [connection signal="hit" from="." to="." method="game_over"]

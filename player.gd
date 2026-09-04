@@ -10,12 +10,12 @@ var state := State.IDLE
 func start(pos):
 	position = pos
 	show()
-	$CollisionShape2D.disabled = false
 	_set_state(State.IDLE)
 
 func _ready():
 	screen_size = get_viewport_rect().size
 	$AnimatedSprite2D.animation_finished.connect(_on_animation_finished)
+	_apply_collision(State.IDLE)
 	hide()
 
 func _process(delta):
@@ -59,6 +59,12 @@ func _set_state(new_state: State) -> void:
 		State.TO_WALK:
 			# Same frames as walk→sit, played backwards.
 			sprite.play("walk_to_sit", -1.0, true)
+	_apply_collision(state)
+
+func _apply_collision(for_state: State) -> void:
+	var sitting := for_state == State.IDLE or for_state == State.TO_SIT
+	$SitCollision.disabled = not sitting
+	$WalkCollision.disabled = sitting
 
 func _on_animation_finished() -> void:
 	if state == State.TO_SIT:
@@ -71,4 +77,5 @@ func _on_body_entered(_body):
 	hide() # Player disappears after being hit.
 	hit.emit()
 	# Must be deferred as we can't change physics properties on a physics callback.
-	$CollisionShape2D.set_deferred("disabled", true)
+	$WalkCollision.set_deferred("disabled", true)
+	$SitCollision.set_deferred("disabled", true)
