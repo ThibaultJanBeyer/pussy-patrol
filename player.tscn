@@ -1,8 +1,6 @@
 [gd_scene format=3 uid="uid://cqt4t1hvcvmri"]
 
-[ext_resource type="Texture2D" uid="uid://cfyadtefj08hh" path="res://art/playerGrey_up1.png" id="1_hqtel"]
 [ext_resource type="Script" uid="uid://cud646txlx1kx" path="res://player.gd" id="1_sweqy"]
-[ext_resource type="Texture2D" uid="uid://cljhs8lhuqbeu" path="res://art/playerGrey_up2.png" id="2_sweqy"]
 [ext_resource type="Texture2D" uid="uid://bf4td6847443r" path="res://art/cat1/cat1_walk_1.png" id="4_1jxqw"]
 [ext_resource type="Texture2D" uid="uid://cwnamwolxcjl7" path="res://art/cat1/cat1_walk_2.png" id="5_dw050"]
 [ext_resource type="Texture2D" uid="uid://dthjefx2yhjbe" path="res://art/cat1/cat1_walk_3.png" id="6_b26j0"]
@@ -10,17 +8,6 @@
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_gwrup"]
 animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("1_hqtel")
-}, {
-"duration": 1.0,
-"texture": ExtResource("2_sweqy")
-}],
-"loop": 1,
-"name": &"up",
-"speed": 5.0
-}, {
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("4_1jxqw")
@@ -40,19 +27,17 @@ animations = [{
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_gwrup"]
-radius = 17.0
-height = 48.0
+radius = 44.0
+height = 112.0
 
 [node name="Cat1" type="Area2D" unique_id=877961281]
 script = ExtResource("1_sweqy")
 metadata/_edit_group_ = true
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=276373639]
-scale = Vector2(0.1, 0.1)
+scale = Vector2(0.3, 0.3)
 sprite_frames = SubResource("SpriteFrames_gwrup")
 animation = &"walk"
-frame = 2
-frame_progress = 0.41347986
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1163291427]
 rotation = 1.5707964
