@@ -16,6 +16,7 @@ DEST="$ROOT/docs"
 LOADER="$ROOT/scripts/wasm-loader.js"
 ICON="$ROOT/art/web/icon.png"
 SPLASH="$ROOT/art/web/social.png"
+BG_COLOR="#ffdcfc"
 
 die() { echo "$*" >&2; exit 1; }
 
@@ -70,7 +71,7 @@ if [[ -n "$CNAME" ]]; then
   printf '%s\n' "$CNAME" > "$DEST/CNAME"
 fi
 
-python3 - "$DEST" "$LOADER" <<'PY'
+python3 - "$DEST" "$LOADER" "$BG_COLOR" <<'PY'
 from pathlib import Path
 import json
 import re
@@ -78,6 +79,7 @@ import sys
 
 dest = Path(sys.argv[1])
 loader = Path(sys.argv[2]).read_text().rstrip("\n")
+bg_color = sys.argv[3]
 
 # Inline the loader at the end of <head> so the wasm and pck downloads start
 # during HTML parse, before game.js is even requested.
@@ -88,6 +90,11 @@ for name in ("game.html", "index.html"):
     text = path.read_text()
     if "wasm-loader" not in text:
         text = text.replace("</head>", block + "</head>", 1)
+    # Godot's template hardcodes a black page background and a dark-gray
+    # loading-overlay background; brand both to match the splash image so
+    # there is no color flash or mismatched letterbox while it boots.
+    text = text.replace("background-color: black;", f"background-color: {bg_color};", 1)
+    text = text.replace("background-color: #242424;", f"background-color: {bg_color};", 1)
     path.write_text(text)
 
 manifest = dest / "game.manifest.json"
