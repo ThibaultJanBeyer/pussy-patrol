@@ -4,7 +4,7 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1788598338|3123317';
+const CACHE_VERSION = '1788598916|2106061271';
 /** @type {string} */
 const CACHE_PREFIX = 'Pussy Patrol-sw-cache-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
