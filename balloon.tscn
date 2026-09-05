@@ -48,17 +48,22 @@ animations = [{
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_gwrup"]
-radius = 126.666664
-height = 340.0
+radius = 235.43718
+height = 667.90594
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_gwrup"]
+friction = 0.1
+bounce = 0.7
 
 [node name="Balloon" type="RigidBody2D" unique_id=1480825318 groups=["mobs"]]
-collision_mask = 0
+collision_mask = 1
 gravity_scale = 0.0
+physics_material_override = SubResource("PhysicsMaterial_gwrup")
 script = ExtResource("1_8fc1f")
 metadata/_edit_group_ = true
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1313799883]
-scale = Vector2(0.25, 0.25)
+scale = Vector2(0.2, 0.2)
 sprite_frames = SubResource("SpriteFrames_gwrup")
 animation = &"walk"
 autoplay = "walk"
@@ -66,9 +71,9 @@ frame_progress = 0.057247374
 
 [node name="WalkCollision" type="CollisionPolygon2D" parent="." unique_id=1201264218]
 rotation = 0.19024089
-scale = Vector2(0.3, 0.3)
-disabled = true
+scale = Vector2(0.22, 0.22)
 polygon = PackedVector2Array(6.2585907, -143.7774, 31.813839, -152.09315, 48.688534, -134.97525, 48.44532, -100.98264, 87.745964, -20.291788, 91.04146, 67.33257, 43.59127, 120.59953, -33.58319, 125.27726, -90.75366, 75.1842, -92.15819, -2.6205826, -55.03631, -74.266075, 2.1118698, -112.42769)
+disabled = true
 
 [node name="ExplodeCollision" type="CollisionShape2D" parent="." unique_id=2052290458]
 visible = false
