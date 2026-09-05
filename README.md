@@ -1,6 +1,9 @@
 # pussy-patrol
 
-A quick joke game.
+A cute and relaxing game
+
+<!-- Add the game image -->
+![Pussy Patrol](art/web/social.png)
 
 ## Deployment
 
@@ -65,22 +68,3 @@ and it made the service worker intercept and re-wrap every single response.
 
 If a stale worker sticks around after a deploy, hard-refresh once or unregister
 it under DevTools → Application → Service Workers.
-
-## Ideas not applied
-
-* **A custom engine build is the only large win left.** 34.5 MB of the 38 MB
-  wasm is the code section: stock Godot with 3D and every module compiled in.
-  Building the web template with `scons platform=web target=template_release
-  disable_3d=yes` plus `module_*_enabled=no` for what the game does not use can
-  roughly halve it. Needs the Godot source and emsdk.
-* **Audio dominates the pck.** `Coffee_Shop_Focus_FULL_SONG.mp3` is 2.2 MB and
-  `gameover.wav` is 416 KB, out of a 2.9 MB pack. Re-encoding the music at a
-  lower bitrate and the sound effect as Ogg Vorbis would cut most of it. Left
-  alone because it trades away audio quality.
-* **`exports/` is committed.** Every export adds a fresh 38 MB `game.wasm` blob
-  to git history, which is most of why `.git` is already 100 MB. Only `docs/` is
-  actually published. To stop it: add `exports/` to `.gitignore` and run
-  `git rm -r --cached exports`.
-* **`config/icon` does not resolve at runtime.** The exported build logs
-  `Unrecognized UID: "uid://cb6etcdw6avi0"` on every start. Harmless on web,
-  where the tab icon comes from the HTML, but it is two red lines in the console.
