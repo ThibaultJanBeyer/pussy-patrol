@@ -97,6 +97,8 @@ FETCH_HOOK = """\t\t<script>
 \tconst origFetch = window.fetch.bind(window);
 \tlet wasmBrPromise = null;
 \tconst isWasmMagic = (bytes) => bytes.length >= 4 && bytes[0] === 0 && bytes[1] === 0x61 && bytes[2] === 0x73 && bytes[3] === 0x6d;
+\tconst wantsEngineWasm = (url) => url.includes("game.wasm") && !url.includes("game.wasm.br");
+\tconst toBrUrl = (url) => url.replace("game.wasm", "game.wasm.br");
 \tconst decodeWasmBr = async (brUrl, init) => {
 \t\tconst res = await origFetch(brUrl, init);
 \t\tif (!res.ok) throw new Error(`Failed loading file '${brUrl}'`);
@@ -111,8 +113,8 @@ FETCH_HOOK = """\t\t<script>
 \t};
 \twindow.fetch = (input, init) => {
 \t\tconst url = typeof input === "string" ? input : (input && input.url) || "";
-\t\tif (!/game\\.wasm(?!\\.br)\\b/.test(url)) return origFetch(input, init);
-\t\tconst brUrl = url.replace(/game\\.wasm(?!\\.br)/, "game.wasm.br");
+\t\tif (!wantsEngineWasm(url)) return origFetch(input, init);
+\t\tconst brUrl = toBrUrl(url);
 \t\tif (!wasmBrPromise) wasmBrPromise = decodeWasmBr(brUrl, init).catch((err) => {
 \t\t\twasmBrPromise = null;
 \t\t\tthrow err;
