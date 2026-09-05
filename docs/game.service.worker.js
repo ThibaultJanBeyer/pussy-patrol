@@ -17,7 +17,7 @@ const ENSURE_CROSSORIGIN_ISOLATION_HEADERS = true;
 const CACHED_FILES = ["index.html","game.js","game.offline.html","game.icon.png","game.apple-touch-icon.png","game.audio.worklet.js","game.audio.position.worklet.js","game.png","game.144x144.png","game.180x180.png","game.512x512.png"];
 // Files that we might not want the user to preload, and will only be cached on first load.
 /** @type {string[]} */
-const CACHEABLE_FILES = ["game.wasm","game.pck"];
+const CACHEABLE_FILES = ["game.wasm.br","game.pck"];
 const FULL_CACHE = CACHED_FILES.concat(CACHEABLE_FILES);
 
 self.addEventListener('install', (event) => {

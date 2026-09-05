@@ -12,6 +12,8 @@ A quick joke game
 ./scripts/publish-pages.sh
 ```
 
-That copies the export into `docs/`, sets `index.html`, applies `art/web/icon.png` (favicon/PWA) and `art/web/social.png` (splash / `og:image`), and preserves `CNAME`.
+That copies the export into `docs/`, sets `index.html`, applies `art/web/icon.png` (favicon/PWA) and `art/web/social.png` (splash / `og:image`), Brotli-compresses `game.wasm` → `game.wasm.br`, and preserves `CNAME`.
+
+Requires `brotli` (`brew install brotli`). Modern browsers decompress via `DecompressionStream`.
 
 PWA/service worker is **off** (threads are off, so it only slowed downloads). After deploying, hard-refresh once or unregister the old service worker for `pussy-patrol.com` in DevTools → Application → Service Workers.

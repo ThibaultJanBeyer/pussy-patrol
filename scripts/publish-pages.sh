@@ -33,6 +33,11 @@ if ! command -v sips >/dev/null; then
   exit 1
 fi
 
+if ! command -v brotli >/dev/null; then
+  echo "brotli is required (brew install brotli)." >&2
+  exit 1
+fi
+
 CNAME=""
 if [[ -f "$DEST/CNAME" ]]; then
   CNAME="$(cat "$DEST/CNAME")"
@@ -62,6 +67,14 @@ sips -z 180 180 "$ICON" --out "$DEST/game.180x180.png" >/dev/null
 sips -z 512 512 "$ICON" --out "$DEST/game.512x512.png" >/dev/null
 cp "$SPLASH" "$DEST/game.png"
 
+# Max-quality Brotli for the engine wasm (38MB → ~7MB on the wire).
+WASM="$DEST/game.wasm"
+if [[ -f "$WASM" ]]; then
+  echo "Brotli-compressing game.wasm (this can take a minute)..."
+  brotli -f -Z -o "$DEST/game.wasm.br" "$WASM"
+  rm -f "$WASM"
+fi
+
 touch "$DEST/.nojekyll"
 
 if [[ -n "$CNAME" ]]; then
@@ -75,6 +88,44 @@ import re
 import sys
 
 dest = Path(sys.argv[1])
+
+# Inject a fetch hook so Godot's request for game.wasm loads game.wasm.br and
+# decompresses it in the browser (GitHub Pages cannot set Content-Encoding).
+FETCH_HOOK = """\t\t<script>
+(() => {
+\tconst origFetch = window.fetch.bind(window);
+\twindow.fetch = (input, init) => {
+\t\tconst url = typeof input === "string" ? input : (input && input.url) || "";
+\t\tif (!/game\\.wasm(?!\\.br)\\b/.test(url)) return origFetch(input, init);
+\t\tconst brUrl = url.replace(/game\\.wasm(?!\\.br)/, "game.wasm.br");
+\t\treturn origFetch(brUrl, init).then((res) => {
+\t\t\tif (!res.ok) return res;
+\t\t\tif (typeof DecompressionStream === "undefined")
+\t\t\t\tthrow new Error("Brotli DecompressionStream is not supported in this browser.");
+\t\t\tconst stream = res.body.pipeThrough(new DecompressionStream("brotli"));
+\t\t\treturn new Response(stream, {
+\t\t\t\tstatus: res.status,
+\t\t\t\tstatusText: res.statusText,
+\t\t\t\theaders: { "Content-Type": "application/wasm" },
+\t\t\t});
+\t\t});
+\t};
+})();
+\t\t</script>
+"""
+
+for html_name in ("game.html", "index.html"):
+    html_path = dest / html_name
+    if not html_path.exists():
+        continue
+    text = html_path.read_text()
+    if "DecompressionStream" not in text:
+        text = text.replace(
+            '\t\t<script src="game.js"></script>',
+            FETCH_HOOK + '\t\t<script src="game.js"></script>',
+            1,
+        )
+    html_path.write_text(text)
 
 manifest_path = dest / "game.manifest.json"
 if manifest_path.exists():
@@ -97,22 +148,26 @@ if sw_path.exists():
         for name in ("index.html", "game.png", "game.144x144.png", "game.180x180.png", "game.512x512.png"):
             if name not in entries:
                 entries.insert(0 if name == "index.html" else len(entries), name)
-        # Keep index.html first for Godot's referrer/base check.
         if "index.html" in entries:
             entries = ["index.html"] + [e for e in entries if e != "index.html"]
         return "const CACHED_FILES = [" + ",".join(f'"{name}"' for name in entries) + "]"
 
-    text, count = re.subn(
-        r"const CACHED_FILES = \[([^\]]*)\]",
-        patch_cached,
-        text,
-        count=1,
-    )
-    if count:
-        sw_path.write_text(text)
+    def patch_cacheable(match: re.Match[str]) -> str:
+        entries = [item.strip().strip('"') for item in match.group(1).split(",") if item.strip()]
+        entries = ["game.wasm.br" if e == "game.wasm" else e for e in entries]
+        if "game.wasm.br" not in entries:
+            entries.append("game.wasm.br")
+        return "const CACHEABLE_FILES = [" + ",".join(f'"{name}"' for name in entries) + "]"
+
+    text, _ = re.subn(r"const CACHED_FILES = \[([^\]]*)\]", patch_cached, text, count=1)
+    text, _ = re.subn(r"const CACHEABLE_FILES = \[([^\]]*)\]", patch_cacheable, text, count=1)
+    sw_path.write_text(text)
 PY
 
 echo "Published $SRC -> $DEST"
+if [[ -f "$DEST/game.wasm.br" ]]; then
+  echo "WASM: game.wasm.br ($(du -h "$DEST/game.wasm.br" | awk '{print $1}')) via Brotli + browser DecompressionStream"
+fi
 echo "Icons: $ICON → favicon/PWA; $SPLASH → game.png splash"
 echo "GitHub Pages: Settings → Pages → Deploy from a branch → main → /docs"
 echo "Then commit and push docs/."
