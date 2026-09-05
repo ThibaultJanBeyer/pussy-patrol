@@ -10,6 +10,7 @@ var state := State.IDLE
 func start(pos):
 	position = pos
 	show()
+	set_process(true)
 	_set_state(State.IDLE)
 
 func _ready():
@@ -19,6 +20,9 @@ func _ready():
 	hide()
 
 func _process(delta):
+	if state == State.HIT:
+		return
+
 	var velocity = Vector2.ZERO # The player's movement vector.
 	if Input.is_action_pressed("move_right"):
 		velocity.x += 1
@@ -81,6 +85,7 @@ func _on_animation_finished() -> void:
 func _on_body_entered(_body):
 	if state == State.HIT:
 		return
+	set_process(false)
 	_set_state(State.HIT)
 	hit.emit()
 	# Must be deferred as we can't change physics properties on a physics callback.

@@ -1,0 +1,84 @@
+[gd_scene format=3 uid="uid://beje2p3qswo04"]
+
+[ext_resource type="Script" uid="uid://fpy1moe6hq4p" path="res://balloon.gd" id="1_8fc1f"]
+[ext_resource type="Texture2D" uid="uid://dl7onaghtl7wh" path="res://art/balloon/balloon_explode_2.png" id="3_jbnni"]
+[ext_resource type="Texture2D" uid="uid://cq70x5jngnifx" path="res://art/balloon/balloon_explode_3.png" id="4_yscv0"]
+[ext_resource type="Texture2D" uid="uid://weuf0l1n377o" path="res://art/balloon/balloon_explode_4.png" id="5_eqsov"]
+[ext_resource type="Texture2D" uid="uid://lru54k7ib5mu" path="res://art/balloon/balloon_explode_5.png" id="6_wvrms"]
+[ext_resource type="Texture2D" uid="uid://d12ndxhw4v7dh" path="res://art/balloon/balloon_explode_6.png" id="7_h0ign"]
+[ext_resource type="Texture2D" uid="uid://13ja4dac5t6l" path="res://art/balloon/balloon_walk_1.png" id="8_6ak38"]
+[ext_resource type="Texture2D" path="res://art/balloon/balloon_1.png" id="9_rxhkm"]
+[ext_resource type="Texture2D" uid="uid://dnk22x4pfao0l" path="res://art/balloon/balloon_walk_3.png" id="10_mhy1y"]
+[ext_resource type="Texture2D" uid="uid://biun4fghvrq23" path="res://art/balloon/balloon_walk_2.png" id="11_gy8bd"]
+[ext_resource type="Texture2D" uid="uid://c6vo2sdxnoa0c" path="res://art/balloon/balloon_walk_4.png" id="12_srff1"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_gwrup"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_jbnni")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_yscv0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_eqsov")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_wvrms")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_h0ign")
+}],
+"loop": 1,
+"name": &"explode",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("8_6ak38")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_rxhkm")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_mhy1y")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_gy8bd")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_srff1")
+}],
+"loop": 1,
+"name": &"walk",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_gwrup"]
+radius = 98.0
+height = 308.0
+
+[node name="Balloon" type="RigidBody2D" unique_id=1480825318 groups=["mobs"]]
+collision_mask = 0
+gravity_scale = 0.0
+script = ExtResource("1_8fc1f")
+metadata/_edit_group_ = true
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1313799883]
+scale = Vector2(0.75, 0.75)
+sprite_frames = SubResource("SpriteFrames_gwrup")
+animation = &"walk"
+
+[node name="WalkCollision" type="CollisionPolygon2D" parent="." unique_id=1201264218]
+rotation = 0.19024089
+scale = Vector2(0.99999994, 0.99999994)
+polygon = PackedVector2Array(-26.924519, -129.24037, 10.768106, -134.46208, 44.576065, -117.5499, 38.691, -89.93892, 56.183853, -67.84818, 79.50218, -10.217844, 79.668175, 48.815815, 63.512367, 86.55161, 21.78246, 107.82638, -16.855644, 108.13829, -47.75421, 95.757706, -75.97565, 65.54924, -84.71052, 25.478031, -72.71481, -33.86086, -50.478157, -71.74927, -22.648287, -96.45754)
+
+[node name="ExplodeCollision" type="CollisionShape2D" parent="." unique_id=2052290458]
+visible = false
+rotation = 1.5707964
+scale = Vector2(0.99999994, 0.99999994)
+shape = SubResource("CapsuleShape2D_gwrup")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=1826969257]
