@@ -12,7 +12,6 @@
 [ext_resource type="Texture2D" uid="uid://bvmg4qgdhah2y" path="res://art/cat1/cat1_walk2sit_1.png" id="12_w2s1"]
 [ext_resource type="Texture2D" uid="uid://siatu0etk3yg" path="res://art/cat1/cat1_walk2sit_2.png" id="13_w2s2"]
 [ext_resource type="Texture2D" uid="uid://bgcphsl704437" path="res://art/cat1/cat1_walk2sit_3.png" id="14_w2s3"]
-[ext_resource type="Texture2D" uid="uid://b14of85a5hm2n" path="res://art/cat1/cat1_walk2sit_4.png" id="15_w2s4"]
 [ext_resource type="Texture2D" uid="uid://dhxite57k1stq" path="res://art/cat1/cat1_water_1.png" id="16_wat1"]
 [ext_resource type="Texture2D" uid="uid://bfev325vr5f6v" path="res://art/cat1/cat1_water_2.png" id="17_wat2"]
 [ext_resource type="Texture2D" uid="uid://36rnswlae0ox" path="res://art/cat1/cat1_water_3.png" id="18_wat3"]
@@ -69,9 +68,6 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": ExtResource("14_w2s3")
-}, {
-"duration": 1.0,
-"texture": ExtResource("15_w2s4")
 }],
 "loop": 0,
 "name": &"walk_to_sit",
@@ -97,11 +93,11 @@ animations = [{
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_gwrup"]
 radius = 44.0
-height = 112.0
+height = 100.0
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_urp6f"]
 radius = 36.0
-height = 92.0
+height = 84.0
 
 [node name="Cat1" type="Area2D" unique_id=877961281]
 script = ExtResource("1_sweqy")
@@ -110,15 +106,19 @@ metadata/_edit_group_ = true
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=276373639]
 scale = Vector2(0.3, 0.3)
 sprite_frames = SubResource("SpriteFrames_gwrup")
-animation = &"idle"
+animation = &"walk_to_sit"
 autoplay = "idle"
+frame = 2
+frame_progress = 1.0
 
 [node name="WalkCollision" type="CollisionShape2D" parent="." unique_id=1163291427]
+position = Vector2(-4, 3)
 rotation = 1.5707964
 shape = SubResource("CapsuleShape2D_gwrup")
 disabled = true
 
 [node name="SitCollision" type="CollisionShape2D" parent="." unique_id=505351783]
+position = Vector2(0, 5)
 shape = SubResource("CapsuleShape2D_urp6f")
 disabled = true
 

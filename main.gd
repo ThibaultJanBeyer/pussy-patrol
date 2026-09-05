@@ -3,6 +3,23 @@ extends Node
 @export var mob_scene: PackedScene
 var score
 
+func _ready() -> void:
+	get_viewport().size_changed.connect(_update_mob_path)
+	_update_mob_path()
+
+func _update_mob_path() -> void:
+	# window/stretch/aspect is "expand", so the visible screen can be any
+	# size or orientation. Keep the mob spawn loop on its actual edges
+	# instead of the fixed 720x1024 rectangle it shipped with.
+	var size = get_viewport().get_visible_rect().size
+	var curve = Curve2D.new()
+	curve.add_point(Vector2(0, 0))
+	curve.add_point(Vector2(size.x, 0))
+	curve.add_point(size)
+	curve.add_point(Vector2(0, size.y))
+	curve.add_point(Vector2(0, 0))
+	$MobPath.curve = curve
+
 func game_over():
 	$ScoreTimer.stop()
 	$MobTimer.stop()

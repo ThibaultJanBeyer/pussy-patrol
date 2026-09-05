@@ -6,11 +6,14 @@ var screen_size # Size of the game window.
 
 enum State { IDLE, WALK, TO_SIT, TO_WALK, HIT }
 var state := State.IDLE
+# If the player releases move mid stand-up, finish standing first then sit.
+var sit_after_stand := false
 
 func start(pos):
 	position = pos
 	show()
 	set_process(true)
+	sit_after_stand = false
 	_set_state(State.IDLE)
 
 func _ready():
@@ -37,6 +40,7 @@ func _process(delta):
 	var wants_to_move := velocity.length() > 0
 
 	if wants_to_move:
+		sit_after_stand = false
 		velocity = velocity.normalized() * speed
 		if state == State.IDLE or state == State.TO_SIT:
 			_set_state(State.TO_WALK)
@@ -46,12 +50,16 @@ func _process(delta):
 			$AnimatedSprite2D.flip_v = false
 			$AnimatedSprite2D.flip_h = velocity.x > 0
 	else:
-		if state == State.WALK or state == State.TO_WALK:
+		if state == State.WALK:
 			_set_state(State.TO_SIT)
+		elif state == State.TO_WALK:
+			# Brief tap: finish stand-up visually, then sit — movement already happened.
+			sit_after_stand = true
 
 func _set_state(new_state: State) -> void:
 	if state == new_state:
 		return
+	var prev := state
 	state = new_state
 	var sprite := $AnimatedSprite2D
 	match state:
@@ -60,11 +68,25 @@ func _set_state(new_state: State) -> void:
 		State.WALK:
 			sprite.play("walk")
 		State.TO_SIT:
-			sprite.play("walk_to_sit")
+			if prev == State.TO_WALK and sprite.animation == &"walk_to_sit":
+				# Reverse from the current stand-up frame instead of snapping.
+				var frame: int = sprite.frame
+				var progress: float = sprite.frame_progress
+				sprite.play("walk_to_sit")
+				sprite.set_frame_and_progress(frame, progress)
+			else:
+				sprite.play("walk_to_sit")
 		State.TO_WALK:
-			# Same frames as walk→sit, played backwards.
-			sprite.play("walk_to_sit", -1.0, true)
+			if prev == State.TO_SIT and sprite.animation == &"walk_to_sit":
+				var frame: int = sprite.frame
+				var progress: float = sprite.frame_progress
+				sprite.play("walk_to_sit", -1.0, false)
+				sprite.set_frame_and_progress(frame, progress)
+			else:
+				# Same frames as walk→sit, played backwards.
+				sprite.play("walk_to_sit", -1.0, true)
 		State.HIT:
+			sit_after_stand = false
 			sprite.play("water")
 	_apply_collision(state)
 
@@ -81,7 +103,11 @@ func _on_animation_finished() -> void:
 	if state == State.TO_SIT:
 		_set_state(State.IDLE)
 	elif state == State.TO_WALK:
-		_set_state(State.WALK)
+		if sit_after_stand:
+			sit_after_stand = false
+			_set_state(State.TO_SIT)
+		else:
+			_set_state(State.WALK)
 
 func _on_body_entered(body):
 	if state == State.HIT:

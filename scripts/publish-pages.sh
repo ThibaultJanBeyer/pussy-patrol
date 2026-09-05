@@ -54,6 +54,38 @@ sips -z 180 180 "$ICON" --out "$DEST/game.180x180.png" >/dev/null
 sips -z 512 512 "$ICON" --out "$DEST/game.512x512.png" >/dev/null
 cp "$SPLASH" "$DEST/game.png"
 
+# favicon.ico (multi-size PNG-in-ICO) so browsers that ignore PNG link tags still brand the tab.
+python3 - "$ICON" "$DEST/favicon.ico" <<'ICO'
+from pathlib import Path
+import struct
+import subprocess
+import sys
+import tempfile
+
+src, dest = Path(sys.argv[1]), Path(sys.argv[2])
+sizes = (16, 32, 48)
+images = []
+with tempfile.TemporaryDirectory() as tmp:
+    for size in sizes:
+        out = Path(tmp) / f"{size}.png"
+        subprocess.run(
+            ["sips", "-z", str(size), str(size), str(src), "--out", str(out)],
+            check=True, capture_output=True,
+        )
+        images.append((size, out.read_bytes()))
+
+offset = 6 + 16 * len(images)
+chunks = []
+entries = []
+for size, data in images:
+    w = 0 if size >= 256 else size
+    entries.append(struct.pack("<BBBBHHII", w, w, 0, 0, 1, 32, len(data), offset))
+    offset += len(data)
+    chunks.append(data)
+dest.write_bytes(struct.pack("<HHH", 0, 1, len(images)) + b"".join(entries) + b"".join(chunks))
+ICO
+
+
 # GitHub Pages cannot serve a Content-Encoding we choose, so the wasm ships
 # pre-compressed and scripts/wasm-loader.js inflates it with DecompressionStream.
 # Only gzip works: no browser implements DecompressionStream('brotli').
@@ -67,6 +99,10 @@ fi
 rm -f "$DEST/game.wasm"
 
 touch "$DEST/.nojekyll"
+# docs/ sits inside the Godot project, so the editor's filesystem dock will
+# otherwise re-import every PNG it finds here and leave fresh .import
+# sidecars behind on its own, with no publish-pages.sh run involved.
+touch "$DEST/.gdignore"
 if [[ -n "$CNAME" ]]; then
   printf '%s\n' "$CNAME" > "$DEST/CNAME"
 fi
@@ -95,7 +131,28 @@ for name in ("game.html", "index.html"):
     # there is no color flash or mismatched letterbox while it boots.
     text = text.replace("background-color: black;", f"background-color: {bg_color};", 1)
     text = text.replace("background-color: #242424;", f"background-color: {bg_color};", 1)
+    # Prefer favicon.ico, keep PNG as well. Godot looks up #-gd-engine-icon at
+    # runtime and replaces it with the engine window icon (often the default
+    # Godot logo) — rename the id so that overwrite cannot find our link.
+    if 'href="favicon.ico"' not in text:
+        text = text.replace(
+            '<link id="-gd-engine-icon" rel="icon" type="image/png" href="game.icon.png" />',
+            '<link rel="icon" href="favicon.ico" sizes="any">\n'
+            '<link rel="icon" type="image/png" href="game.icon.png" sizes="512x512">',
+            1,
+        )
     path.write_text(text)
+
+# After boot, Godot calls _godot_js_display_window_icon_set and swaps the tab
+# icon to whatever DisplayServer thinks the window icon is (frequently the
+# stock Godot logo on web). Keep our branded favicon instead.
+js_path = dest / "game.js"
+if js_path.exists():
+    js = js_path.read_text()
+    needle = "function _godot_js_display_window_icon_set(p_ptr,p_len){"
+    if needle in js and "function _godot_js_display_window_icon_set(p_ptr,p_len){return;" not in js:
+        js = js.replace(needle, "function _godot_js_display_window_icon_set(p_ptr,p_len){return;", 1)
+        js_path.write_text(js)
 
 manifest = dest / "game.manifest.json"
 if manifest.exists():
@@ -124,7 +181,7 @@ if sw.exists():
     def cached(names):
         # game.html is published as index.html; the icons come from art/web/.
         names = [n for n in names if n != "game.html"]
-        for extra in ("game.png", "game.144x144.png", "game.180x180.png", "game.512x512.png"):
+        for extra in ("favicon.ico", "game.png", "game.144x144.png", "game.180x180.png", "game.512x512.png"):
             if extra not in names:
                 names.append(extra)
         return ["index.html"] + [n for n in names if n != "index.html"]
@@ -149,5 +206,4 @@ echo "Published $SRC -> $DEST"
 echo "  game.wasm.gz  $(du -h "$DEST/game.wasm.gz" | cut -f1) on the wire (from $(du -h "$SRC/game.wasm" | cut -f1), $((gz * 100 / raw))%)"
 echo "  game.pck      $(du -h "$DEST/game.pck" | cut -f1)"
 echo
-echo "GitHub Pages: Settings -> Pages -> Deploy from a branch -> main -> /docs"
-echo "Then commit and push docs/."
+echo "Commit and push docs/"
