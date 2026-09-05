@@ -45,6 +45,11 @@ cp -R "$SRC"/. "$DEST"/
 # Drop editor import sidecars that sometimes land in the export folder.
 find "$DEST" -name '*.import' -delete
 
+# If PWA is disabled, Godot may leave stale worker/manifest files from older exports.
+if ! grep -q '"serviceWorker"' "$DEST/game.html" 2>/dev/null; then
+  rm -f "$DEST/game.service.worker.js" "$DEST/game.manifest.json" "$DEST/game.offline.html"
+fi
+
 if [[ -f "$DEST/game.html" ]]; then
   cp "$DEST/game.html" "$DEST/index.html"
 fi

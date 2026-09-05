@@ -6,10 +6,11 @@ var exploding := false
 var _spin_dir := 1.0
 
 func _ready() -> void:
-	$ExplodeCollision.disabled = true
 	$AnimatedSprite2D.animation_finished.connect(_on_animation_finished)
 	$AnimatedSprite2D.play("walk")
 	_spin_dir = 1.0 if randf() > 0.5 else -1.0
+	await get_tree().physics_frame
+	$WalkCollision.disabled = false
 
 func _process(delta: float) -> void:
 	if exploding:

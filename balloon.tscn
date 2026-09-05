@@ -67,6 +67,7 @@ frame_progress = 0.057247374
 [node name="WalkCollision" type="CollisionPolygon2D" parent="." unique_id=1201264218]
 rotation = 0.19024089
 scale = Vector2(0.3, 0.3)
+disabled = true
 polygon = PackedVector2Array(6.2585907, -143.7774, 31.813839, -152.09315, 48.688534, -134.97525, 48.44532, -100.98264, 87.745964, -20.291788, 91.04146, 67.33257, 43.59127, 120.59953, -33.58319, 125.27726, -90.75366, 75.1842, -92.15819, -2.6205826, -55.03631, -74.266075, 2.1118698, -112.42769)
 
 [node name="ExplodeCollision" type="CollisionShape2D" parent="." unique_id=2052290458]

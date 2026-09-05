@@ -16,8 +16,9 @@ func start(pos):
 func _ready():
 	screen_size = get_viewport_rect().size
 	$AnimatedSprite2D.animation_finished.connect(_on_animation_finished)
-	_apply_collision(State.IDLE)
 	hide()
+	await get_tree().physics_frame
+	_apply_collision(State.IDLE)
 
 func _process(delta):
 	if state == State.HIT:

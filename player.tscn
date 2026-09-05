@@ -120,5 +120,6 @@ disabled = true
 
 [node name="SitCollision" type="CollisionShape2D" parent="." unique_id=505351783]
 shape = SubResource("CapsuleShape2D_urp6f")
+disabled = true
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
