@@ -116,21 +116,32 @@ body {
 		<script>
 (() => {
 	const origFetch = window.fetch.bind(window);
+	let wasmBrPromise = null;
+	const isWasmMagic = (bytes) => bytes.length >= 4 && bytes[0] === 0 && bytes[1] === 0x61 && bytes[2] === 0x73 && bytes[3] === 0x6d;
+	const decodeWasmBr = async (brUrl, init) => {
+		const res = await origFetch(brUrl, init);
+		if (!res.ok) throw new Error(`Failed loading file '${brUrl}'`);
+		const buf = await res.arrayBuffer();
+		const bytes = new Uint8Array(buf);
+		// Cloudflare (or the browser) may already have decoded Content-Encoding: br.
+		if (isWasmMagic(bytes)) return buf;
+		if (typeof DecompressionStream === "undefined")
+			throw new Error("Brotli DecompressionStream is not supported in this browser.");
+		const stream = new Blob([buf]).stream().pipeThrough(new DecompressionStream("brotli"));
+		return await new Response(stream).arrayBuffer();
+	};
 	window.fetch = (input, init) => {
 		const url = typeof input === "string" ? input : (input && input.url) || "";
-		if (!/game\.wasm(?!\.br)\b/.test(url)) return origFetch(input, init);
+		if (!/game\.wasm(?!\.br)/.test(url)) return origFetch(input, init);
 		const brUrl = url.replace(/game\.wasm(?!\.br)/, "game.wasm.br");
-		return origFetch(brUrl, init).then((res) => {
-			if (!res.ok) return res;
-			if (typeof DecompressionStream === "undefined")
-				throw new Error("Brotli DecompressionStream is not supported in this browser.");
-			const stream = res.body.pipeThrough(new DecompressionStream("brotli"));
-			return new Response(stream, {
-				status: res.status,
-				statusText: res.statusText,
-				headers: { "Content-Type": "application/wasm" },
-			});
+		if (!wasmBrPromise) wasmBrPromise = decodeWasmBr(brUrl, init).catch((err) => {
+			wasmBrPromise = null;
+			throw err;
 		});
+		return wasmBrPromise.then((buf) => new Response(buf.slice(0), {
+			status: 200,
+			headers: { "Content-Type": "application/wasm" },
+		}));
 	};
 })();
 		</script>

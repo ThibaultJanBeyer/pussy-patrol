@@ -91,24 +91,36 @@ dest = Path(sys.argv[1])
 
 # Inject a fetch hook so Godot's request for game.wasm loads game.wasm.br and
 # decompresses it in the browser (GitHub Pages cannot set Content-Encoding).
+# Cache one download: Godot retries failed wasm loads up to 4 times.
 FETCH_HOOK = """\t\t<script>
 (() => {
 \tconst origFetch = window.fetch.bind(window);
+\tlet wasmBrPromise = null;
+\tconst isWasmMagic = (bytes) => bytes.length >= 4 && bytes[0] === 0 && bytes[1] === 0x61 && bytes[2] === 0x73 && bytes[3] === 0x6d;
+\tconst decodeWasmBr = async (brUrl, init) => {
+\t\tconst res = await origFetch(brUrl, init);
+\t\tif (!res.ok) throw new Error(`Failed loading file '${brUrl}'`);
+\t\tconst buf = await res.arrayBuffer();
+\t\tconst bytes = new Uint8Array(buf);
+\t\t// Cloudflare (or the browser) may already have decoded Content-Encoding: br.
+\t\tif (isWasmMagic(bytes)) return buf;
+\t\tif (typeof DecompressionStream === "undefined")
+\t\t\tthrow new Error("Brotli DecompressionStream is not supported in this browser.");
+\t\tconst stream = new Blob([buf]).stream().pipeThrough(new DecompressionStream("brotli"));
+\t\treturn await new Response(stream).arrayBuffer();
+\t};
 \twindow.fetch = (input, init) => {
 \t\tconst url = typeof input === "string" ? input : (input && input.url) || "";
 \t\tif (!/game\\.wasm(?!\\.br)\\b/.test(url)) return origFetch(input, init);
 \t\tconst brUrl = url.replace(/game\\.wasm(?!\\.br)/, "game.wasm.br");
-\t\treturn origFetch(brUrl, init).then((res) => {
-\t\t\tif (!res.ok) return res;
-\t\t\tif (typeof DecompressionStream === "undefined")
-\t\t\t\tthrow new Error("Brotli DecompressionStream is not supported in this browser.");
-\t\t\tconst stream = res.body.pipeThrough(new DecompressionStream("brotli"));
-\t\t\treturn new Response(stream, {
-\t\t\t\tstatus: res.status,
-\t\t\t\tstatusText: res.statusText,
-\t\t\t\theaders: { "Content-Type": "application/wasm" },
-\t\t\t});
+\t\tif (!wasmBrPromise) wasmBrPromise = decodeWasmBr(brUrl, init).catch((err) => {
+\t\t\twasmBrPromise = null;
+\t\t\tthrow err;
 \t\t});
+\t\treturn wasmBrPromise.then((buf) => new Response(buf.slice(0), {
+\t\t\tstatus: 200,
+\t\t\theaders: { "Content-Type": "application/wasm" },
+\t\t}));
 \t};
 })();
 \t\t</script>
