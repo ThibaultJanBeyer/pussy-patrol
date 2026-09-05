@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dwr0vx3lc1sxo"]
 
 [ext_resource type="Script" uid="uid://n8e6iv7236yb" path="res://hud.gd" id="1_64ctp"]
-[ext_resource type="FontFile" uid="uid://cy53i7pm4m1p2" path="res://fonts/LuckiestGuy-Regular.ttf" id="2_8sq4i"]
+[ext_resource type="FontFile" uid="uid://c3inl12qloxh6" path="res://fonts/Chewy-Regular.ttf" id="2_8sq4i"]
 [ext_resource type="Theme" uid="uid://dhso7j44fjj38" path="res://button-theme.tres" id="3_640wx"]
 
 [sub_resource type="InputEventAction" id="InputEventAction_7mycd"]
@@ -41,7 +41,7 @@ offset_right = 240.0
 offset_bottom = 37.5
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.72156864, 0, 0.72156864, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_8sq4i")
 theme_override_font_sizes/font_size = 40
 text = "Don't get wet!"

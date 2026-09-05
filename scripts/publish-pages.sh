@@ -16,7 +16,7 @@ DEST="$ROOT/docs"
 LOADER="$ROOT/scripts/wasm-loader.js"
 ICON="$ROOT/art/web/icon.png"
 SPLASH="$ROOT/art/web/social.png"
-BG_COLOR="#ffdcfc"
+BG_COLOR="#f1cdf2"
 
 die() { echo "$*" >&2; exit 1; }
 

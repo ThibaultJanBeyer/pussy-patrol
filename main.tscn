@@ -23,7 +23,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(1, 0.8627451, 0.9882353, 1)
+color = Color(0.94509804, 0.8039216, 0.9490196, 1)
 
 [node name="MobTimer" type="Timer" parent="." unique_id=745998542]
 wait_time = 0.5
