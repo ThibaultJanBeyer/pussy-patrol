@@ -14,7 +14,8 @@ config/name="Pussy Patrol"
 config/description="Pussy-Patrol celebrates the natural diversity of the female body, because no two vulvas look alike, yet most of us only ever see one airbrushed 'ideal.' Where sex ed left off, we step in: honest, unstylized representation designed to ease the silent comparison anxiety driving a rise in cosmetic surgery. This isn't pornography — it's clinical, deliberate, and body-positive by design. By replacing shame with visibility, we reclaim the female body from both the porn industry and the culture of silence around it. Every body deserves to be seen without judgment."
 run/main_scene="uid://oyc4tpt6una1"
 config/features=PackedStringArray("4.7", "Forward Plus")
-config/icon="res://icon.svg"
+boot_splash/image="res://art/web/social.png"
+config/icon="res://art/web/icon.png"
 
 [autoload]
 
