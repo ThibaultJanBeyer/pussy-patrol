@@ -11,6 +11,13 @@ config_version=5
 [application]
 
 config/name="Pussy Patrol"
+config/description="Water is the enemy. You are the last line of defense.
+
+Guide your cat through a gauntlet of showerheads, sprinklers, hoses, and rogue watering cans — dodge, weave, and zoom your way to dry victory. One splash and it's game over (nobody said being a cat was easy).
+
+Choose from a growing roster of unique cats, each with their own look and personality, and see how long you can stay bone dry as the chaos ramps up. Because if there's one universal truth in this world, it's this: cats. hate. water.
+
+How long can you stay dry?"
 run/main_scene="uid://oyc4tpt6una1"
 config/features=PackedStringArray("4.7", "Forward Plus")
 boot_splash/image="res://art/web/social.png"

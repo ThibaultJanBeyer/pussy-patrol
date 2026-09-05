@@ -28,6 +28,11 @@ if [[ ! -f "$SPLASH" ]]; then
   exit 1
 fi
 
+if ! command -v sips >/dev/null; then
+  echo "sips is required to resize PWA icons (macOS)." >&2
+  exit 1
+fi
+
 CNAME=""
 if [[ -f "$DEST/CNAME" ]]; then
   CNAME="$(cat "$DEST/CNAME")"
@@ -44,7 +49,7 @@ if [[ -f "$DEST/game.html" ]]; then
   cp "$DEST/game.html" "$DEST/index.html"
 fi
 
-# Favicon + PWA icons from art/web/icon.png; loading splash from social.png.
+# Favicon + PWA icons from art/web/icon.png; loading/share splash from social.png.
 cp "$ICON" "$DEST/game.icon.png"
 cp "$ICON" "$DEST/game.apple-touch-icon.png"
 sips -z 144 144 "$ICON" --out "$DEST/game.144x144.png" >/dev/null
@@ -84,8 +89,12 @@ if sw_path.exists():
     def patch_cached(match: re.Match[str]) -> str:
         entries = [item.strip().strip('"') for item in match.group(1).split(",") if item.strip()]
         entries = [name for name in entries if name != "game.html"]
-        if "index.html" not in entries:
-            entries.insert(0, "index.html")
+        for name in ("index.html", "game.png", "game.144x144.png", "game.180x180.png", "game.512x512.png"):
+            if name not in entries:
+                entries.insert(0 if name == "index.html" else len(entries), name)
+        # Keep index.html first for Godot's referrer/base check.
+        if "index.html" in entries:
+            entries = ["index.html"] + [e for e in entries if e != "index.html"]
         return "const CACHED_FILES = [" + ",".join(f'"{name}"' for name in entries) + "]"
 
     text, count = re.subn(
