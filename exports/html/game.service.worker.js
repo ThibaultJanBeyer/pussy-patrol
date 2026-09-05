@@ -4,14 +4,14 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1788600312|3502128471';
+const CACHE_VERSION = '1788602265|5375644';
 /** @type {string} */
 const CACHE_PREFIX = 'Pussy Patrol-sw-cache-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
 /** @type {string} */
 const OFFLINE_URL = 'game.offline.html';
 /** @type {boolean} */
-const ENSURE_CROSSORIGIN_ISOLATION_HEADERS = true;
+const ENSURE_CROSSORIGIN_ISOLATION_HEADERS = false;
 // Files that will be cached on load.
 /** @type {string[]} */
 const CACHED_FILES = ["game.html","game.js","game.offline.html","game.icon.png","game.apple-touch-icon.png","game.audio.worklet.js","game.audio.position.worklet.js"];

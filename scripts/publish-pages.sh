@@ -1,43 +1,34 @@
 #!/usr/bin/env bash
+# Publish the Godot Web export in exports/html/ to docs/, which GitHub Pages serves.
+#
+# What this does beyond a plain copy:
+#   * pre-compresses game.wasm to game.wasm.gz (38 MB -> ~10 MB on the wire)
+#   * inlines scripts/wasm-loader.js, which inflates it in the browser and
+#     starts the wasm + pck downloads during HTML parse
+#   * rewrites the favicon / PWA icons and the splash image
+#   * points the service worker at the compressed wasm
+#   * preserves CNAME and .nojekyll
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$ROOT/exports/html"
 DEST="$ROOT/docs"
+LOADER="$ROOT/scripts/wasm-loader.js"
 ICON="$ROOT/art/web/icon.png"
 SPLASH="$ROOT/art/web/social.png"
 
-if [[ ! -f "$SRC/game.html" && ! -f "$SRC/index.html" ]]; then
-  echo "No web export in $SRC." >&2
-  echo "In Godot, export the Web preset to exports/html/game.html first." >&2
-  exit 1
-fi
+die() { echo "$*" >&2; exit 1; }
 
-if ! compgen -G "$SRC"/*.wasm > /dev/null || ! compgen -G "$SRC"/*.pck > /dev/null; then
-  echo "Export is incomplete: $SRC is missing .wasm or .pck." >&2
-  exit 1
-fi
+[[ -f "$SRC/game.html" ]] || die "No web export in $SRC. In Godot, export the Web preset to exports/html/game.html first."
+compgen -G "$SRC/game.wasm" > /dev/null || die "Export is incomplete: $SRC/game.wasm is missing."
+compgen -G "$SRC/game.pck"  > /dev/null || die "Export is incomplete: $SRC/game.pck is missing."
+[[ -f "$LOADER" ]] || die "Missing loader: $LOADER"
+[[ -f "$ICON"   ]] || die "Missing game icon: $ICON"
+[[ -f "$SPLASH" ]] || die "Missing splash image: $SPLASH"
+command -v sips  >/dev/null || die "sips is required to resize the PWA icons (macOS)."
+command -v gzip  >/dev/null || die "gzip is required."
 
-if [[ ! -f "$ICON" ]]; then
-  echo "Missing game icon: $ICON" >&2
-  exit 1
-fi
-
-if [[ ! -f "$SPLASH" ]]; then
-  echo "Missing splash image: $SPLASH" >&2
-  exit 1
-fi
-
-if ! command -v sips >/dev/null; then
-  echo "sips is required to resize PWA icons (macOS)." >&2
-  exit 1
-fi
-
-if ! command -v brotli >/dev/null; then
-  echo "brotli is required (brew install brotli)." >&2
-  exit 1
-fi
-
+# docs/ is rebuilt from scratch; carry the two files Pages needs but Godot never exports.
 CNAME=""
 if [[ -f "$DEST/CNAME" ]]; then
   CNAME="$(cat "$DEST/CNAME")"
@@ -47,19 +38,14 @@ rm -rf "$DEST"
 mkdir -p "$DEST"
 cp -R "$SRC"/. "$DEST"/
 
-# Drop editor import sidecars that sometimes land in the export folder.
+# Godot re-imports anything sitting under the project directory, so the export
+# folder collects editor sidecars. They are not part of the site.
 find "$DEST" -name '*.import' -delete
+find "$DEST" -name '.DS_Store' -delete
 
-# If PWA is disabled, Godot may leave stale worker/manifest files from older exports.
-if ! grep -q '"serviceWorker"' "$DEST/game.html" 2>/dev/null; then
-  rm -f "$DEST/game.service.worker.js" "$DEST/game.manifest.json" "$DEST/game.offline.html"
-fi
+cp "$DEST/game.html" "$DEST/index.html"
 
-if [[ -f "$DEST/game.html" ]]; then
-  cp "$DEST/game.html" "$DEST/index.html"
-fi
-
-# Favicon + PWA icons from art/web/icon.png; loading/share splash from social.png.
+# Favicon and PWA icons from art/web/icon.png; loading + share splash from social.png.
 cp "$ICON" "$DEST/game.icon.png"
 cp "$ICON" "$DEST/game.apple-touch-icon.png"
 sips -z 144 144 "$ICON" --out "$DEST/game.144x144.png" >/dev/null
@@ -67,121 +53,94 @@ sips -z 180 180 "$ICON" --out "$DEST/game.180x180.png" >/dev/null
 sips -z 512 512 "$ICON" --out "$DEST/game.512x512.png" >/dev/null
 cp "$SPLASH" "$DEST/game.png"
 
-# Max-quality Brotli for the engine wasm (38MB → ~7MB on the wire).
-WASM="$DEST/game.wasm"
-if [[ -f "$WASM" ]]; then
-  echo "Brotli-compressing game.wasm (this can take a minute)..."
-  brotli -f -Z -o "$DEST/game.wasm.br" "$WASM"
-  rm -f "$WASM"
+# GitHub Pages cannot serve a Content-Encoding we choose, so the wasm ships
+# pre-compressed and scripts/wasm-loader.js inflates it with DecompressionStream.
+# Only gzip works: no browser implements DecompressionStream('brotli').
+# zopfli, if installed, writes a ~4% smaller but identical-to-decode gzip stream.
+echo "Compressing game.wasm ..."
+if command -v zopfli >/dev/null; then
+  zopfli --gzip -c "$DEST/game.wasm" > "$DEST/game.wasm.gz"
+else
+  gzip -9 -c "$DEST/game.wasm" > "$DEST/game.wasm.gz"
 fi
+rm -f "$DEST/game.wasm"
 
 touch "$DEST/.nojekyll"
-
 if [[ -n "$CNAME" ]]; then
   printf '%s\n' "$CNAME" > "$DEST/CNAME"
 fi
 
-python3 - "$DEST" <<'PY'
+python3 - "$DEST" "$LOADER" <<'PY'
 from pathlib import Path
 import json
 import re
 import sys
 
 dest = Path(sys.argv[1])
+loader = Path(sys.argv[2]).read_text().rstrip("\n")
 
-# Inject a fetch hook so Godot's request for game.wasm loads game.wasm.br and
-# decompresses it in the browser (GitHub Pages cannot set Content-Encoding).
-# Cache one download: Godot retries failed wasm loads up to 4 times.
-FETCH_HOOK = """\t\t<script>
-(() => {
-\tconst origFetch = window.fetch.bind(window);
-\tlet wasmBrPromise = null;
-\tconst isWasmMagic = (bytes) => bytes.length >= 4 && bytes[0] === 0 && bytes[1] === 0x61 && bytes[2] === 0x73 && bytes[3] === 0x6d;
-\tconst wantsEngineWasm = (url) => url.includes("game.wasm") && !url.includes("game.wasm.br");
-\tconst toBrUrl = (url) => url.replace("game.wasm", "game.wasm.br");
-\tconst decodeWasmBr = async (brUrl, init) => {
-\t\tconst res = await origFetch(brUrl, init);
-\t\tif (!res.ok) throw new Error(`Failed loading file '${brUrl}'`);
-\t\tconst buf = await res.arrayBuffer();
-\t\tconst bytes = new Uint8Array(buf);
-\t\t// Cloudflare (or the browser) may already have decoded Content-Encoding: br.
-\t\tif (isWasmMagic(bytes)) return buf;
-\t\tif (typeof DecompressionStream === "undefined")
-\t\t\tthrow new Error("Brotli DecompressionStream is not supported in this browser.");
-\t\tconst stream = new Blob([buf]).stream().pipeThrough(new DecompressionStream("brotli"));
-\t\treturn await new Response(stream).arrayBuffer();
-\t};
-\twindow.fetch = (input, init) => {
-\t\tconst url = typeof input === "string" ? input : (input && input.url) || "";
-\t\tif (!wantsEngineWasm(url)) return origFetch(input, init);
-\t\tconst brUrl = toBrUrl(url);
-\t\tif (!wasmBrPromise) wasmBrPromise = decodeWasmBr(brUrl, init).catch((err) => {
-\t\t\twasmBrPromise = null;
-\t\t\tthrow err;
-\t\t});
-\t\treturn wasmBrPromise.then((buf) => new Response(buf.slice(0), {
-\t\t\tstatus: 200,
-\t\t\theaders: { "Content-Type": "application/wasm" },
-\t\t}));
-\t};
-})();
-\t\t</script>
-"""
+# Inline the loader at the end of <head> so the wasm and pck downloads start
+# during HTML parse, before game.js is even requested.
+block = "\t\t<script>\n" + loader + "\n\t\t</script>\n\t"
 
-for html_name in ("game.html", "index.html"):
-    html_path = dest / html_name
-    if not html_path.exists():
-        continue
-    text = html_path.read_text()
-    if "DecompressionStream" not in text:
-        text = text.replace(
-            '\t\t<script src="game.js"></script>',
-            FETCH_HOOK + '\t\t<script src="game.js"></script>',
-            1,
-        )
-    html_path.write_text(text)
+for name in ("game.html", "index.html"):
+    path = dest / name
+    text = path.read_text()
+    if "wasm-loader" not in text:
+        text = text.replace("</head>", block + "</head>", 1)
+    path.write_text(text)
 
-manifest_path = dest / "game.manifest.json"
-if manifest_path.exists():
-    data = json.loads(manifest_path.read_text())
+manifest = dest / "game.manifest.json"
+if manifest.exists():
+    data = json.loads(manifest.read_text())
     data["start_url"] = "./index.html"
     data["icons"] = [
         {"src": "game.144x144.png", "sizes": "144x144", "type": "image/png", "purpose": "any"},
         {"src": "game.180x180.png", "sizes": "180x180", "type": "image/png", "purpose": "any"},
         {"src": "game.512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
     ]
-    manifest_path.write_text(json.dumps(data, separators=(",", ":")))
+    manifest.write_text(json.dumps(data, separators=(",", ":")))
 
-sw_path = dest / "game.service.worker.js"
-if sw_path.exists():
-    text = sw_path.read_text()
+# The service worker caches the boot files so a repeat visit skips the network
+# entirely. It has to be told the real filenames we ended up publishing.
+sw = dest / "game.service.worker.js"
+if sw.exists():
+    text = sw.read_text()
 
-    def patch_cached(match: re.Match[str]) -> str:
-        entries = [item.strip().strip('"') for item in match.group(1).split(",") if item.strip()]
-        entries = [name for name in entries if name != "game.html"]
-        for name in ("index.html", "game.png", "game.144x144.png", "game.180x180.png", "game.512x512.png"):
-            if name not in entries:
-                entries.insert(0 if name == "index.html" else len(entries), name)
-        if "index.html" in entries:
-            entries = ["index.html"] + [e for e in entries if e != "index.html"]
-        return "const CACHED_FILES = [" + ",".join(f'"{name}"' for name in entries) + "]"
+    def patch(const, fn):
+        def sub(match):
+            names = [n.strip().strip('"') for n in match.group(1).split(",") if n.strip()]
+            return "const " + const + " = [" + ",".join(f'"{n}"' for n in fn(names)) + "]"
 
-    def patch_cacheable(match: re.Match[str]) -> str:
-        entries = [item.strip().strip('"') for item in match.group(1).split(",") if item.strip()]
-        entries = ["game.wasm.br" if e == "game.wasm" else e for e in entries]
-        if "game.wasm.br" not in entries:
-            entries.append("game.wasm.br")
-        return "const CACHEABLE_FILES = [" + ",".join(f'"{name}"' for name in entries) + "]"
+        return re.subn(r"const " + const + r" = \[([^\]]*)\]", sub, text, count=1)
 
-    text, _ = re.subn(r"const CACHED_FILES = \[([^\]]*)\]", patch_cached, text, count=1)
-    text, _ = re.subn(r"const CACHEABLE_FILES = \[([^\]]*)\]", patch_cacheable, text, count=1)
-    sw_path.write_text(text)
+    def cached(names):
+        # game.html is published as index.html; the icons come from art/web/.
+        names = [n for n in names if n != "game.html"]
+        for extra in ("game.png", "game.144x144.png", "game.180x180.png", "game.512x512.png"):
+            if extra not in names:
+                names.append(extra)
+        return ["index.html"] + [n for n in names if n != "index.html"]
+
+    def cacheable(names):
+        names = ["game.wasm.gz" if n == "game.wasm" else n for n in names]
+        if "game.wasm.gz" not in names:
+            names.append("game.wasm.gz")
+        return names
+
+    for const, fn in (("CACHED_FILES", cached), ("CACHEABLE_FILES", cacheable)):
+        text, n = patch(const, fn)
+        if n == 0:
+            print(f"warning: could not patch {const} in the service worker", file=sys.stderr)
+    sw.write_text(text)
 PY
 
+raw=$(stat -f%z "$SRC/game.wasm")
+gz=$(stat -f%z "$DEST/game.wasm.gz")
+echo
 echo "Published $SRC -> $DEST"
-if [[ -f "$DEST/game.wasm.br" ]]; then
-  echo "WASM: game.wasm.br ($(du -h "$DEST/game.wasm.br" | awk '{print $1}')) via Brotli + browser DecompressionStream"
-fi
-echo "Icons: $ICON → favicon/PWA; $SPLASH → game.png splash"
-echo "GitHub Pages: Settings → Pages → Deploy from a branch → main → /docs"
+echo "  game.wasm.gz  $(du -h "$DEST/game.wasm.gz" | cut -f1) on the wire (from $(du -h "$SRC/game.wasm" | cut -f1), $((gz * 100 / raw))%)"
+echo "  game.pck      $(du -h "$DEST/game.pck" | cut -f1)"
+echo
+echo "GitHub Pages: Settings -> Pages -> Deploy from a branch -> main -> /docs"
 echo "Then commit and push docs/."
