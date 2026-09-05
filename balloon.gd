@@ -1,15 +1,34 @@
 extends RigidBody2D
 
+@export var spin_speed := 1.2 ## Radians per second while walking.
 
-func _ready():
-	var mob_types = Array($AnimatedSprite2D.sprite_frames.get_animation_names())
-	$AnimatedSprite2D.animation = mob_types.pick_random()
-	$AnimatedSprite2D.play()
+var exploding := false
+var _spin_dir := 1.0
 
+func _ready() -> void:
+	$ExplodeCollision.disabled = true
+	$AnimatedSprite2D.animation_finished.connect(_on_animation_finished)
+	$AnimatedSprite2D.play("walk")
+	_spin_dir = 1.0 if randf() > 0.5 else -1.0
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	pass
+	if exploding:
+		return
+	$AnimatedSprite2D.rotation += spin_speed * _spin_dir * delta
 
-func _on_visible_on_screen_notifier_2d_screen_exited():
+func explode() -> void:
+	if exploding:
+		return
+	exploding = true
+	linear_velocity = Vector2.ZERO
+	freeze = true
+	$WalkCollision.set_deferred("disabled", true)
+	$ExplodeCollision.set_deferred("disabled", true)
+	$AnimatedSprite2D.play("explode")
+
+func _on_animation_finished() -> void:
+	if exploding:
+		queue_free()
+
+func _on_visible_on_screen_notifier_2d_screen_exited() -> void:
 	queue_free()

@@ -69,12 +69,12 @@ func _set_state(new_state: State) -> void:
 
 func _apply_collision(for_state: State) -> void:
 	if for_state == State.HIT:
-		$SitCollision.disabled = true
-		$WalkCollision.disabled = true
+		$SitCollision.set_deferred("disabled", true)
+		$WalkCollision.set_deferred("disabled", true)
 		return
 	var sitting := for_state == State.IDLE or for_state == State.TO_SIT
-	$SitCollision.disabled = not sitting
-	$WalkCollision.disabled = sitting
+	$SitCollision.set_deferred("disabled", not sitting)
+	$WalkCollision.set_deferred("disabled", sitting)
 
 func _on_animation_finished() -> void:
 	if state == State.TO_SIT:
@@ -82,12 +82,11 @@ func _on_animation_finished() -> void:
 	elif state == State.TO_WALK:
 		_set_state(State.WALK)
 
-func _on_body_entered(_body):
+func _on_body_entered(body):
 	if state == State.HIT:
 		return
+	if body.has_method("explode"):
+		body.explode()
 	set_process(false)
 	_set_state(State.HIT)
 	hit.emit()
-	# Must be deferred as we can't change physics properties on a physics callback.
-	$WalkCollision.set_deferred("disabled", true)
-	$SitCollision.set_deferred("disabled", true)
