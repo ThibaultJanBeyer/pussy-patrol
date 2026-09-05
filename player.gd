@@ -9,6 +9,13 @@ var state := State.IDLE
 # If the player releases move mid stand-up, finish standing first then sit.
 var sit_after_stand := false
 
+# Touch/drag-to-follow: while held, overrides keyboard movement and steers
+# toward the pointer instead. Mouse works the same way so this is testable
+# on desktop; a real touch also emits emulated mouse events, which is fine
+# since both paths land on the same drag_target.
+var drag_active := false
+var drag_target := Vector2.ZERO
+
 func start(pos):
 	position = pos
 	show()
@@ -23,19 +30,44 @@ func _ready():
 	await get_tree().physics_frame
 	_apply_collision(State.IDLE)
 
+func _input(event: InputEvent) -> void:
+	# Not _unhandled_input: Godot's GUI layer absorbs mouse/touch events
+	# before they get there whenever the scene has any Control node (here,
+	# the HUD's Start button and labels), even far from those controls.
+	if event is InputEventScreenTouch:
+		drag_active = event.pressed
+		if event.pressed:
+			drag_target = event.position
+	elif event is InputEventScreenDrag:
+		drag_active = true
+		drag_target = event.position
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		drag_active = event.pressed
+		if event.pressed:
+			drag_target = event.position
+	elif event is InputEventMouseMotion and drag_active:
+		drag_target = event.position
+
 func _process(delta):
 	if state == State.HIT:
 		return
 
 	var velocity = Vector2.ZERO # The player's movement vector.
-	if Input.is_action_pressed("move_right"):
-		velocity.x += 1
-	if Input.is_action_pressed("move_left"):
-		velocity.x -= 1
-	if Input.is_action_pressed("move_down"):
-		velocity.y += 1
-	if Input.is_action_pressed("move_up"):
-		velocity.y -= 1
+	if drag_active:
+		var to_target = drag_target - position
+		# Close enough: stop steering instead of jittering back and forth
+		# across the target every frame.
+		if to_target.length() > 2.0:
+			velocity = to_target.normalized()
+	else:
+		if Input.is_action_pressed("move_right"):
+			velocity.x += 1
+		if Input.is_action_pressed("move_left"):
+			velocity.x -= 1
+		if Input.is_action_pressed("move_down"):
+			velocity.y += 1
+		if Input.is_action_pressed("move_up"):
+			velocity.y -= 1
 
 	var wants_to_move := velocity.length() > 0
 
