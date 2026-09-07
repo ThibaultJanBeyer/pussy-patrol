@@ -7,6 +7,10 @@ var exploding := false
 var _spin_dir := 1.0
 
 func _ready() -> void:
+	# Scale the whole body, not just the sprite, so the collision shapes
+	# (children of it) shrink right along with the visual — never bigger
+	# than the base size, up to 30% smaller.
+	scale = Vector2.ONE * randf_range(0.7, 1.0)
 	$AnimatedSprite2D.animation_finished.connect(_on_animation_finished)
 	$AnimatedSprite2D.play("walk")
 	_spin_dir = 1.0 if randf() > 0.5 else -1.0
@@ -35,11 +39,11 @@ func _on_animation_finished() -> void:
 	if exploding:
 		queue_free()
 
-func _on_balloon_contact(body: Node) -> void:
-	if exploding or not body.is_in_group("mobs") or not body.has_method("explode"):
-		return
+func _on_balloon_contact(_body: Node) -> void:
 	# Each side rolls for itself — the other balloon runs this same check
 	# independently for the same hit, so the two outcomes aren't linked.
+	if exploding:
+		return
 	if randf() < explode_chance:
 		explode()
 
