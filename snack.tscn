@@ -1,0 +1,86 @@
+[gd_scene format=3 uid="uid://khthxa27672y"]
+
+[ext_resource type="Script" uid="uid://fpy1moe6hq4p" path="res://balloon.gd" id="1_a1b8w"]
+[ext_resource type="Texture2D" uid="uid://cbtoouvfm2ddm" path="res://art/snacks/snack_biscuit.png" id="2_q5kom"]
+[ext_resource type="Texture2D" uid="uid://crt7erg13vb3f" path="res://art/snacks/snack_simple.png" id="3_tdcju"]
+[ext_resource type="Texture2D" uid="uid://djqkn3k6jtwvg" path="res://art/snacks/snack_fish.png" id="4_tql7r"]
+[ext_resource type="Texture2D" uid="uid://b3f7pef746byi" path="res://art/snacks/snack_heart.png" id="5_5apvp"]
+[ext_resource type="Texture2D" uid="uid://dr5mfd33n20vs" path="res://art/snacks/snack_pack.png" id="6_xpanw"]
+[ext_resource type="Texture2D" uid="uid://rv31gn638xjj" path="res://art/snacks/snack_stick.png" id="7_gv426"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_gwrup"]
+friction = 0.1
+bounce = 0.7
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_gwrup"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_q5kom")
+}],
+"loop": 1,
+"name": &"biscuit",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_tdcju")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_tql7r")
+}],
+"loop": 1,
+"name": &"fish",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_5apvp")
+}],
+"loop": 1,
+"name": &"heart",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("6_xpanw")
+}],
+"loop": 1,
+"name": &"pack",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_gv426")
+}],
+"loop": 1,
+"name": &"stick",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_gwrup"]
+radius = 119.999985
+
+[node name="Snack" type="RigidBody2D" unique_id=1480825318 groups=["mobs"]]
+physics_material_override = SubResource("PhysicsMaterial_gwrup")
+gravity_scale = 0.0
+script = ExtResource("1_a1b8w")
+metadata/_edit_group_ = true
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1199134710]
+scale = Vector2(0.1, 0.1)
+sprite_frames = SubResource("SpriteFrames_gwrup")
+animation = &"pack"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1075201173]
+scale = Vector2(0.1, 0.1)
+shape = SubResource("CircleShape2D_gwrup")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=1826969257]
+
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]

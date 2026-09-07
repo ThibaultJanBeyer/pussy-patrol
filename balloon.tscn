@@ -10,6 +10,10 @@
 [ext_resource type="Texture2D" uid="uid://13ja4dac5t6l" path="res://art/balloon/balloon_walk_1.png" id="8_6ak38"]
 [ext_resource type="Texture2D" uid="uid://c6vo2sdxnoa0c" path="res://art/balloon/balloon_walk_4.png" id="12_srff1"]
 
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_gwrup"]
+friction = 0.1
+bounce = 0.7
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_gwrup"]
 animations = [{
 "frames": [{
@@ -43,7 +47,7 @@ animations = [{
 "texture": ExtResource("12_srff1")
 }],
 "loop": 1,
-"name": &"walk",
+"name": &"simple",
 "speed": 3.0
 }]
 
@@ -51,14 +55,9 @@ animations = [{
 radius = 235.43718
 height = 667.90594
 
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_gwrup"]
-friction = 0.1
-bounce = 0.7
-
 [node name="Balloon" type="RigidBody2D" unique_id=1480825318 groups=["mobs"]]
-collision_mask = 1
-gravity_scale = 0.0
 physics_material_override = SubResource("PhysicsMaterial_gwrup")
+gravity_scale = 0.0
 script = ExtResource("1_8fc1f")
 metadata/_edit_group_ = true
 

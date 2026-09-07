@@ -112,7 +112,6 @@ func _on_mob_timer_timeout():
 
 	# Ramp up the spawn rate for the next mob too, capped at SPAWN_INTERVAL_MIN.
 	$MobTimer.wait_time = lerpf(SPAWN_INTERVAL_START, SPAWN_INTERVAL_MIN, _spawn_rate_progress())
-	print("DEBUG spawn elapsed=", (Time.get_ticks_msec() - _round_start_msec) / 1000.0, " wait_time=", $MobTimer.wait_time, " speed=[", speed_min, ",", speed_max, "]")
 
 
 func _on_score_timer_timeout() -> void:
