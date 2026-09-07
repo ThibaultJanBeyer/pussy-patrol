@@ -16,6 +16,8 @@
 [ext_resource type="Texture2D" uid="uid://bfev325vr5f6v" path="res://art/cat1/cat1_water_2.png" id="17_wat2"]
 [ext_resource type="Texture2D" uid="uid://36rnswlae0ox" path="res://art/cat1/cat1_water_3.png" id="18_wat3"]
 [ext_resource type="Texture2D" uid="uid://c6wyoa7oyvp0c" path="res://art/cat1/cat1_water_4.png" id="19_wat4"]
+[ext_resource type="FontFile" uid="uid://c3inl12qloxh6" path="res://fonts/Chewy-Regular.ttf" id="20_font"]
+[ext_resource type="AudioStream" uid="uid://clhl72tsujvum" path="res://art/star.mp3" id="21_star"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_gwrup"]
 animations = [{
@@ -100,6 +102,7 @@ radius = 36.0
 height = 84.0
 
 [node name="Cat1" type="Area2D" unique_id=877961281]
+collision_mask = 3
 script = ExtResource("1_sweqy")
 metadata/_edit_group_ = true
 
@@ -122,4 +125,26 @@ position = Vector2(0, 5)
 shape = SubResource("CapsuleShape2D_urp6f")
 disabled = true
 
+[node name="InvulnTimer" type="Timer" parent="." unique_id=415421001]
+one_shot = true
+
+[node name="PackTimerLabel" type="Label" parent="." unique_id=1901447001]
+visible = false
+offset_left = -80.0
+offset_top = -115.0
+offset_right = 80.0
+offset_bottom = -75.0
+theme_override_colors/font_color = Color(0.9, 0.15, 0.15, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("20_font")
+theme_override_font_sizes/font_size = 36
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PackSound" type="AudioStreamPlayer2D" parent="." unique_id=1901447002]
+stream = ExtResource("21_star")
+
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="timeout" from="InvulnTimer" to="." method="_on_invuln_timer_timeout"]

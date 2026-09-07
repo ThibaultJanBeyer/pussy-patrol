@@ -5,6 +5,7 @@ signal hit
 var screen_size # Size of the game window.
 
 enum State { IDLE, WALK, TO_SIT, TO_WALK, HIT }
+enum Invuln { NONE, HIT, PACK }
 var state := State.IDLE
 # If the player releases move mid stand-up, finish standing first then sit.
 var sit_after_stand := false
@@ -15,18 +16,31 @@ var sit_after_stand := false
 # since both paths land on the same drag_target.
 var drag_active := false
 var drag_target := Vector2.ZERO
+var start_position := Vector2.ZERO
 
-func start(pos):
-	position = pos
-	show()
+const HIT_INVULN_SECONDS := 1.5 # brief grace window after losing a life so the next balloon doesn't chain-kill
+const PACK_RING_RADIUS := 65.0
+const PACK_RING_WIDTH := 6.0
+const PACK_BLINK_WINDOW_SECONDS := 1.5 # ring starts blinking this long before pack wears off
+const PACK_BLINK_HZ := 4.0
+var invuln_kind := Invuln.NONE
+var _rainbow_hue := 0.0
+
+func start():
+	position = start_position
 	set_process(true)
 	sit_after_stand = false
+	invuln_kind = Invuln.NONE
+	$AnimatedSprite2D.modulate = Color.WHITE
+	$PackTimerLabel.hide()
+	queue_redraw()
 	_set_state(State.IDLE)
 
 func _ready():
 	screen_size = get_viewport_rect().size
+	start_position = Vector2(screen_size.x / 2, screen_size.y / 2 - 125);
+	position = start_position
 	$AnimatedSprite2D.animation_finished.connect(_on_animation_finished)
-	hide()
 	await get_tree().physics_frame
 	_apply_collision(State.IDLE)
 
@@ -49,6 +63,15 @@ func _input(event: InputEvent) -> void:
 		drag_target = event.position
 
 func _process(delta):
+	match invuln_kind:
+		Invuln.PACK:
+			_rainbow_hue = fmod(_rainbow_hue + delta * 2.0, 1.0)
+			$AnimatedSprite2D.modulate = Color.from_hsv(_rainbow_hue, 0.8, 1.0)
+			$PackTimerLabel.text = str(ceili($InvulnTimer.time_left))
+			queue_redraw()
+		Invuln.HIT:
+			$AnimatedSprite2D.modulate.a = 0.4 + 0.6 * absf(sin(Time.get_ticks_msec() / 100.0))
+
 	if state == State.HIT:
 		return
 
@@ -144,8 +167,48 @@ func _on_animation_finished() -> void:
 func _on_body_entered(body):
 	if state == State.HIT:
 		return
+	if body.is_in_group("snacks"):
+		body.collect(self)
+		return
 	if body.has_method("explode"):
-		body.explode()
-	set_process(false)
-	_set_state(State.HIT)
-	hit.emit()
+		if invuln_kind != Invuln.NONE:
+			body.explode()
+		else:
+			body.explode()
+			set_process(false)
+			$AnimatedSprite2D.modulate = Color.WHITE
+			_set_state(State.HIT)
+			hit.emit()
+
+func activate_pack(duration: float) -> void:
+	_start_invulnerability(duration, Invuln.PACK)
+	$PackTimerLabel.show()
+	$PackSound.play() # restarts from the top if it's already playing
+
+func recover_from_hit() -> void:
+	# Let the water-dance read before standing back up.
+	await get_tree().create_timer(0.6).timeout
+	set_process(true)
+	_set_state(State.IDLE)
+	_start_invulnerability(HIT_INVULN_SECONDS, Invuln.HIT)
+
+func _start_invulnerability(duration: float, kind: Invuln) -> void:
+	invuln_kind = kind
+	$InvulnTimer.start(duration)
+
+func _on_invuln_timer_timeout() -> void:
+	invuln_kind = Invuln.NONE
+	$AnimatedSprite2D.modulate = Color.WHITE
+	$PackTimerLabel.hide()
+	queue_redraw()
+
+func _draw() -> void:
+	if invuln_kind != Invuln.PACK:
+		return
+	var t: float = $InvulnTimer.time_left
+	var ring_alpha := 1.0
+	if t <= PACK_BLINK_WINDOW_SECONDS:
+		var phase := sin(t * TAU * PACK_BLINK_HZ) * 0.5 + 0.5
+		ring_alpha = lerpf(0.25, 1.0, phase)
+	var ring_color := Color.from_hsv(_rainbow_hue, 0.9, 1.0, ring_alpha)
+	draw_arc(Vector2.ZERO, PACK_RING_RADIUS, 0.0, TAU, 48, ring_color, PACK_RING_WIDTH, true)

@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://cqt4t1hvcvmri" path="res://player.tscn" id="3_h2yge"]
 [ext_resource type="PackedScene" uid="uid://dwr0vx3lc1sxo" path="res://hud.tscn" id="4_1bvp3"]
 [ext_resource type="AudioStream" uid="uid://becm6ewwud46d" path="res://art/gameover.wav" id="5_lquwl"]
+[ext_resource type="PackedScene" uid="uid://khthxa27672y" path="res://snack.tscn" id="6_snack"]
 
 [sub_resource type="Curve2D" id="Curve2D_0xm2m"]
 _data = {
@@ -19,6 +20,7 @@ loop = true
 [node name="Main" type="Node" unique_id=541229310]
 script = ExtResource("1_ig7tw")
 mob_scene = ExtResource("2_0xm2m")
+snack_scene = ExtResource("6_snack")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1813321570]
 anchors_preset = 15
@@ -31,14 +33,9 @@ color = Color(0.94509804, 0.8039216, 0.9490196, 1)
 [node name="MobTimer" type="Timer" parent="." unique_id=745998542]
 wait_time = 0.5
 
-[node name="ScoreTimer" type="Timer" parent="." unique_id=1249070568]
-
 [node name="StartTimer" type="Timer" parent="." unique_id=1104988784]
 wait_time = 2.0
 one_shot = true
-
-[node name="StartPosition" type="Marker2D" parent="." unique_id=354240689]
-position = Vector2(240, 450)
 
 [node name="MobPath" type="Path2D" parent="." unique_id=1912776496]
 curve = SubResource("Curve2D_0xm2m")
@@ -57,7 +54,6 @@ autoplay = true
 stream = ExtResource("5_lquwl")
 
 [connection signal="timeout" from="MobTimer" to="." method="_on_mob_timer_timeout"]
-[connection signal="timeout" from="ScoreTimer" to="." method="_on_score_timer_timeout"]
 [connection signal="timeout" from="StartTimer" to="." method="_on_start_timer_timeout"]
-[connection signal="hit" from="Player" to="." method="game_over"]
+[connection signal="hit" from="Player" to="." method="_on_player_hit"]
 [connection signal="start_game" from="HUD" to="." method="new_game"]

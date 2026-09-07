@@ -26,6 +26,7 @@ config/icon="uid://cb6etcdw6avi0"
 [autoload]
 
 _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
+Fx="*res://fx.gd"
 
 [display]
 

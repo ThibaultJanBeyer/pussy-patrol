@@ -34,6 +34,7 @@ func explode() -> void:
 	$WalkCollision.set_deferred("disabled", true)
 	$ExplodeCollision.set_deferred("disabled", true)
 	$AnimatedSprite2D.play("explode")
+	get_parent().spawn_snack(global_position)
 
 func _on_animation_finished() -> void:
 	if exploding:

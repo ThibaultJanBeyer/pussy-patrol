@@ -16,8 +16,13 @@ const MOB_SPEED_START := Vector2(150.0, 250.0) # min, max
 const MOB_SPEED_END := Vector2(260.0, 420.0) # min, max at DIFFICULTY_RAMP_SECONDS, uncapped past it
 const DIFFICULTY_RAMP_SECONDS := 75.0
 
+const START_LIVES := 1 # a cat has 9 lives, but you only start with one
+const MAX_LIVES := 9
+
 @export var mob_scene: PackedScene
+@export var snack_scene: PackedScene
 var score
+var lives := START_LIVES
 var _pending_restart := false
 var _round_start_msec := 0
 
@@ -54,7 +59,6 @@ func _speed_progress() -> float:
 	return t * t if t <= 1.0 else 2.0 * t - 1.0
 
 func game_over():
-	$ScoreTimer.stop()
 	$MobTimer.stop()
 	$HUD.show_game_over()
 	$DeathSound.play()
@@ -74,12 +78,15 @@ func _auto_restart() -> void:
 func new_game():
 	_pending_restart = false
 	score = 0
-	$Player.start($StartPosition.position)
+	lives = START_LIVES
+	$Player.start()
 	$StartTimer.start()
 	$HUD.update_score(score)
+	$HUD.update_lives(lives, MAX_LIVES)
 	$HUD.reset()
 	$HUD.show_message("Get Ready")
 	get_tree().call_group("mobs", "queue_free")
+	get_tree().call_group("snacks", "queue_free")
 
 
 func _on_mob_timer_timeout():
@@ -114,13 +121,32 @@ func _on_mob_timer_timeout():
 	$MobTimer.wait_time = lerpf(SPAWN_INTERVAL_START, SPAWN_INTERVAL_MIN, _spawn_rate_progress())
 
 
-func _on_score_timer_timeout() -> void:
-	score += 1
-	$HUD.update_score(score)
-
-
 func _on_start_timer_timeout() -> void:
 	_round_start_msec = Time.get_ticks_msec()
 	$MobTimer.wait_time = SPAWN_INTERVAL_START
 	$MobTimer.start()
-	$ScoreTimer.start()
+
+
+func spawn_snack(pos: Vector2) -> void:
+	var snack = snack_scene.instantiate()
+	snack.position = pos
+	add_child.call_deferred(snack)
+
+
+func add_points(amount: int) -> void:
+	score += amount
+	$HUD.update_score(score)
+
+
+func add_life() -> void:
+	lives = mini(lives + 1, MAX_LIVES)
+	$HUD.update_lives(lives, MAX_LIVES)
+
+
+func _on_player_hit() -> void:
+	lives -= 1
+	$HUD.update_lives(lives, MAX_LIVES)
+	if lives <= 0:
+		game_over()
+	else:
+		$Player.recover_from_hit()

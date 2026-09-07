@@ -3,6 +3,8 @@
 [ext_resource type="Script" uid="uid://n8e6iv7236yb" path="res://hud.gd" id="1_64ctp"]
 [ext_resource type="FontFile" uid="uid://c3inl12qloxh6" path="res://fonts/Chewy-Regular.ttf" id="2_8sq4i"]
 [ext_resource type="Theme" uid="uid://dhso7j44fjj38" path="res://button-theme.tres" id="3_640wx"]
+[ext_resource type="Texture2D" uid="uid://b3f7pef746byi" path="res://art/snacks/snack_heart.png" id="4_heart"]
+[ext_resource type="Texture2D" uid="uid://djqkn3k6jtwvg" path="res://art/snacks/snack_fish.png" id="5_fish"]
 
 [sub_resource type="InputEventAction" id="InputEventAction_7mycd"]
 action = &"start_game"
@@ -13,20 +15,102 @@ events = [SubResource("InputEventAction_7mycd")]
 [node name="HUD" type="CanvasLayer" unique_id=441272909]
 script = ExtResource("1_64ctp")
 
-[node name="ScoreLabel" type="Label" parent="." unique_id=2034721486]
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -22.5
-offset_right = 22.5
-offset_bottom = 78.0
-grow_horizontal = 2
-theme_override_colors/font_color = Color(0.72156864, 0, 0.72156864, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
+[node name="StatsDisplay" type="Control" parent="." unique_id=876185995]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LivesDisplay" type="HBoxContainer" parent="StatsDisplay" unique_id=-1284967295]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 220.0
+offset_bottom = 44.0
+theme_override_constants/separation = 6
+
+[node name="HeartIcon" type="TextureRect" parent="StatsDisplay/LivesDisplay" unique_id=-1284967294]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("4_heart")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Bars" type="HBoxContainer" parent="StatsDisplay/LivesDisplay" unique_id=-1284967293]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 3
+
+[node name="Bar0" type="ColorRect" parent="StatsDisplay/LivesDisplay/Bars" unique_id=-1284967286]
+custom_minimum_size = Vector2(8, 28)
+layout_mode = 2
+color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="Bar1" type="ColorRect" parent="StatsDisplay/LivesDisplay/Bars" unique_id=-1284967285]
+custom_minimum_size = Vector2(8, 28)
+layout_mode = 2
+color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="Bar2" type="ColorRect" parent="StatsDisplay/LivesDisplay/Bars" unique_id=-1284967284]
+custom_minimum_size = Vector2(8, 28)
+layout_mode = 2
+color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="Bar3" type="ColorRect" parent="StatsDisplay/LivesDisplay/Bars" unique_id=-1284967283]
+custom_minimum_size = Vector2(8, 28)
+layout_mode = 2
+color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="Bar4" type="ColorRect" parent="StatsDisplay/LivesDisplay/Bars" unique_id=-1284967282]
+custom_minimum_size = Vector2(8, 28)
+layout_mode = 2
+color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="Bar5" type="ColorRect" parent="StatsDisplay/LivesDisplay/Bars" unique_id=-1284967281]
+custom_minimum_size = Vector2(8, 28)
+layout_mode = 2
+color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="Bar6" type="ColorRect" parent="StatsDisplay/LivesDisplay/Bars" unique_id=-1284967280]
+custom_minimum_size = Vector2(8, 28)
+layout_mode = 2
+color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="Bar7" type="ColorRect" parent="StatsDisplay/LivesDisplay/Bars" unique_id=-1284967279]
+custom_minimum_size = Vector2(8, 28)
+layout_mode = 2
+color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="Bar8" type="ColorRect" parent="StatsDisplay/LivesDisplay/Bars" unique_id=-1284967278]
+custom_minimum_size = Vector2(8, 28)
+layout_mode = 2
+color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="ScoreDisplay" type="HBoxContainer" parent="StatsDisplay" unique_id=-1284967276]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 48.0
+offset_right = 220.0
+offset_bottom = 111.0
+theme_override_constants/separation = 6
+
+[node name="FishIcon" type="TextureRect" parent="StatsDisplay/ScoreDisplay" unique_id=-1284967275]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("5_fish")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ScoreLabel" type="Label" parent="StatsDisplay/ScoreDisplay" unique_id=2034721486]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/outline_size = 10
 theme_override_fonts/font = ExtResource("2_8sq4i")
-theme_override_font_sizes/font_size = 64
+theme_override_font_sizes/font_size = 38
 text = "0"
-horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Message" type="Label" parent="." unique_id=1953260687]
