@@ -2,8 +2,11 @@
 
 A cute and relaxing game
 
-<!-- Add the game image -->
-![Pussy Patrol](art/web/social.png)
+[![Pussy Patrol](art/web/social.png)](https://pussy-patrol.com)
+
+Play at: [https://www.pussy-patrol.com](https://www.pussy-patrol.com)
+
+Feel free to modify and go bollocks, I want to see your craziest additions!
 
 ## Deployment
 
